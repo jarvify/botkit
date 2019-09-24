@@ -1,3 +1,6 @@
+git tag -d v4.5.0 && git tag v4.5.0 && git push origin :v4.5.0 && git push origin v4.5.0
+npm pack
+
 # Botkit - Building Blocks for Building Bots
 
 [![npm](https://img.shields.io/npm/v/botkit.svg)](https://www.npmjs.com/package/botkit)
@@ -11,7 +14,7 @@
 
 ## Install Botkit
 
-The best way to get started locally with Botkit is by installing our Yeoman template, and using it to create a new Botkit project. 
+The best way to get started locally with Botkit is by installing our Yeoman template, and using it to create a new Botkit project.
 This will install and configure a starter kit for you!
 
 ```bash
@@ -23,11 +26,11 @@ yo botkit
 
 Want to dive right in? [Remix one of our starter kits on Glitch](https://glitch.com/botkit). You'll start with a fully functioning app that you can edit and run from the browser!
 
- [![Remix on Glitch](https://botkit.ai/docs/glitch.png)](https://glitch.com/botkit)
+[![Remix on Glitch](https://botkit.ai/docs/glitch.png)](https://glitch.com/botkit)
 
 ## Build Your Bot
 
-The goal of Botkit is to make it easier and more fun to build software that talks and works like a robot! 
+The goal of Botkit is to make it easier and more fun to build software that talks and works like a robot!
 Building a bot should feel cool, and not too technically complicated.
 
 Botkit handles all the nitty gritty details like
@@ -46,27 +49,25 @@ No plugins are necessary to use the Bot Framework service, and bots can be devel
 
 The Botkit project includes several official adapters. Using these plugins, your bot can communicate directly with the messaging platforms.
 
-* [Self-hosted web chat](../botbuilder-adapter-web)
-* [Slack](../botbuilder-adapter-slack)
-* [Webex Teams](../botbuilder-adapter-webex)
-* [Facebook Messenger](../botbuilder-adapter-facebook)
-* [Twilio SMS](../botbuilder-adapter-twilio-sms)
-* [Google Hangouts](../botbuilder-adapter-hangouts)
+-   [Self-hosted web chat](../botbuilder-adapter-web)
+-   [Slack](../botbuilder-adapter-slack)
+-   [Webex Teams](../botbuilder-adapter-webex)
+-   [Facebook Messenger](../botbuilder-adapter-facebook)
+-   [Twilio SMS](../botbuilder-adapter-twilio-sms)
+-   [Google Hangouts](../botbuilder-adapter-hangouts)
 
-Additional adapters can be found by [searching npm for Bot Framework-compatible adapters](https://www.npmjs.com/search?q=botbuilder-adapter). The open source community has created a variety of plugins and extensions to Bot Framework.  Check out the [Bot Builder Community Repo](https://github.com/BotBuilderCommunity/botbuilder-community-js) for additional adapters, storage connectors and middlewares.
+Additional adapters can be found by [searching npm for Bot Framework-compatible adapters](https://www.npmjs.com/search?q=botbuilder-adapter). The open source community has created a variety of plugins and extensions to Bot Framework. Check out the [Bot Builder Community Repo](https://github.com/BotBuilderCommunity/botbuilder-community-js) for additional adapters, storage connectors and middlewares.
 
-[Platform specific documentation can be found on the main docs site  &raquo;](../docs/platforms/index.md)
+[Platform specific documentation can be found on the main docs site &raquo;](../docs/platforms/index.md)
 
 ### Hearing Keywords
 
 Most bots do their thing by listening for keywords, phrases or patterns in messages from users. Botkit has a special event handler called `hears()` that makes it easy to configure your bot to listen for this type of trigger.
 
 ```javascript
-controller.hears(['string','pattern .*',new RegExp('.*','i')],'message,other_event', async (bot, message) => {
-
-  // do something!
-  await bot.reply(message, 'I heard a message.')
-
+controller.hears(['string', 'pattern .*', new RegExp('.*', 'i')], 'message,other_event', async (bot, message) => {
+    // do something!
+    await bot.reply(message, 'I heard a message.');
 });
 ```
 
@@ -78,9 +79,7 @@ Bots can respond to non-verbal events as well, like when a new user joins a chan
 
 ```javascript
 controller.on('channel_join', async (bot, message) => {
-
-  await bot.reply(message,'Welcome to the channel!');
-
+    await bot.reply(message, 'Welcome to the channel!');
 });
 ```
 
@@ -95,32 +94,29 @@ Middleware can be used to adjust how Botkit receives, processes, and sends messa
 ```javascript
 // Log every message received
 controller.middleware.receive.use(function(bot, message, next) {
+    // log it
+    console.log('RECEIVED: ', message);
 
-  // log it
-  console.log('RECEIVED: ', message);
+    // modify the message
+    message.logged = true;
 
-  // modify the message
-  message.logged = true;
-
-  // continue processing the message
-  next();
-
+    // continue processing the message
+    next();
 });
 
 // Log every message sent
 controller.middleware.send.use(function(bot, message, next) {
+    // log it
+    console.log('SENT: ', message);
 
-  // log it
-  console.log('SENT: ', message);
+    // modify the message
+    message.logged = true;
 
-  // modify the message
-  message.logged = true;
-
-  // continue processing the message
-  next();
-
+    // continue processing the message
+    next();
 });
 ```
+
 ## Documentation
 
 [Full documentation of Botkit, including a class reference, can be found on the docs site](https://botkit.ai/docs/v4), as well as [on Github](../docs/index.md).
