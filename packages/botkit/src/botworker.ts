@@ -107,7 +107,7 @@ export class BotWorker {
                 resolve(await this.getConfig('context').sendActivity(activity));
             });
         });
-    };
+    }
 
     /**
      * Reply to an incoming message.
@@ -117,16 +117,16 @@ export class BotWorker {
      *
      * ```javascript
      * controller.on('event', async(bot, message) => {
-    *
-    *  await bot.reply(message, 'I received an event and am replying to it.');
-    *
-    * });
-    * ```
-    *
-    * @param src An incoming message, usually passed in to a handler function
-    * @param resp A string containing the text of a reply, or more fully formed message object
-    * @returns Return value will contain the results of the send action, typically `{id: <id of message>}`
-    */
+     *
+     *  await bot.reply(message, 'I received an event and am replying to it.');
+     *
+     * });
+     * ```
+     *
+     * @param src An incoming message, usually passed in to a handler function
+     * @param resp A string containing the text of a reply, or more fully formed message object
+     * @returns Return value will contain the results of the send action, typically `{id: <id of message>}`
+     */
     public async reply(src: Partial<BotkitMessage>, resp: Partial<BotkitMessage> | string): Promise<any> {
         let activity = this.ensureMessageFormat(resp);
 
@@ -224,11 +224,7 @@ export class BotWorker {
         this._config.reference = reference;
 
         // Create an activity using this reference
-        const activity = TurnContext.applyConversationReference(
-            { type: 'message' },
-            reference,
-            true
-        );
+        const activity = TurnContext.applyConversationReference({ type: 'message' }, reference, true);
 
         // create a turn context
         const turnContext = new TurnContext(this._controller.adapter, activity as Activity);
@@ -246,7 +242,9 @@ export class BotWorker {
     public async startConversationWithUser(reference: any): Promise<void> {
         // this code is mostly copied from BotFrameworkAdapter.createConversation
 
-        if (!reference.serviceUrl) { throw new Error(`bot.startConversationWithUser(): missing serviceUrl.`); }
+        if (!reference.serviceUrl) {
+            throw new Error(`bot.startConversationWithUser(): missing serviceUrl.`);
+        }
 
         // Create conversation
         const parameters: ConversationParameters = { bot: reference.bot, members: [reference.user], isGroup: false, activity: null, channelData: null };
@@ -264,11 +262,7 @@ export class BotWorker {
         const response = await client.conversations.createConversation(parameters);
 
         // Initialize request and copy over new conversation ID and updated serviceUrl.
-        const request: Partial<Activity> = TurnContext.applyConversationReference(
-            { type: 'event', name: 'createConversation' },
-            reference,
-            true
-        );
+        const request: Partial<Activity> = TurnContext.applyConversationReference({ type: 'event', name: 'createConversation' }, reference, true);
 
         const conversation: ConversationAccount = {
             id: response.id,
@@ -279,7 +273,9 @@ export class BotWorker {
         };
         request.conversation = conversation;
 
-        if (response.serviceUrl) { request.serviceUrl = response.serviceUrl; }
+        if (response.serviceUrl) {
+            request.serviceUrl = response.serviceUrl;
+        }
 
         // Create context and run middleware
         const turnContext: TurnContext = this.controller.adapter.createContext(request);
@@ -300,8 +296,7 @@ export class BotWorker {
      * @returns a properly formed Activity object
      */
     public ensureMessageFormat(message: Partial<BotkitMessage> | string): Partial<Activity> {
-
-        if (typeof (message) === 'string') {
+        if (typeof message === 'string') {
             return {
                 type: 'message',
                 text: message,
@@ -356,7 +351,7 @@ export class BotWorker {
                 timestamp: message.timestamp,
                 topicName: message.topicName,
                 value: message.value,
-                valueType: message.valueType,
+                valueType: message.valueType
             };
 
             // Now, copy any additional fields not in the activity into channelData

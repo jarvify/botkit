@@ -17,8 +17,7 @@ const ARCHITECTURE: any = os.arch();
 const TYPE: any = os.type();
 const RELEASE: any = os.release();
 const NODE_VERSION: any = process.version;
-const USER_AGENT: string = `Microsoft-BotFramework/3.1 Botkit/${ pjson.version } ` +
-    `(Node.js,Version=${ NODE_VERSION }; ${ TYPE } ${ RELEASE }; ${ ARCHITECTURE })`;
+const USER_AGENT: string = `Microsoft-BotFramework/3.1 Botkit/${pjson.version} ` + `(Node.js,Version=${NODE_VERSION}; ${TYPE} ${RELEASE}; ${ARCHITECTURE})`;
 
 /**
  * This class extends the [BotFrameworkAdapter](https://docs.microsoft.com/en-us/javascript/api/botbuilder/botframeworkadapter?view=botbuilder-ts-latest) with a few additional features to support Microsoft Teams.
@@ -69,26 +68,38 @@ export class BotkitBotFrameworkAdapter extends BotFrameworkAdapter {
      * @param context A TurnContext object representing a message or event from a user in Teams
      * @returns an array of channels in the format [{name: string, id: string}]
      */
-    public async getChannels(context: TurnContext): Promise<{id: string; name: string}[]> {
+    public async getChannels(context: TurnContext): Promise<{ id: string; name: string }[]> {
         if (context.activity.channelData && context.activity.channelData.team) {
             let token = await this.credentials.getToken(true);
 
             var uri = context.activity.serviceUrl + 'v3/teams/' + context.activity.channelData.team.id + '/conversations/';
             return new Promise(async (resolve, reject) => {
-                request({
-                    method: 'GET',
-                    headers: {
-                        Authorization: 'Bearer ' + token
+                request(
+                    {
+                        method: 'GET',
+                        headers: {
+                            Authorization: 'Bearer ' + token
+                        },
+                        json: true,
+                        uri: uri
                     },
-                    json: true,
-                    uri: uri
-                }, async function(err, res, json) {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(json.conversations ? json.conversations.map((c) => { if (!c.name) { c.name = 'General'; } return c; }) : []);
+                    async function(err, res, json) {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(
+                                json.conversations
+                                    ? json.conversations.map((c) => {
+                                          if (!c.name) {
+                                              c.name = 'General';
+                                          }
+                                          return c;
+                                      })
+                                    : []
+                            );
+                        }
                     }
-                });
+                );
             });
         } else {
             console.error('getChannels cannot be called from unknown team');

@@ -110,12 +110,12 @@ export class BotkitCMSHelper {
             if (line.channelData.attachment.payload.elements) {
                 for (var e = 0; e < line.channelData.attachment.payload.elements.length; e++) {
                     if (!line.channelData.attachment.payload.elements[e].buttons || !line.channelData.attachment.payload.elements[e].buttons.length) {
-                        delete (line.channelData.attachment.payload.elements[e].buttons);
+                        delete line.channelData.attachment.payload.elements[e].buttons;
                     }
                 }
             }
 
-            delete (line.fb_attachment);
+            delete line.fb_attachment;
         }
 
         // Copy quick replies to channelData.
@@ -133,7 +133,7 @@ export class BotkitCMSHelper {
                     return a;
                 });
             }
-            delete (line.platforms.teams);
+            delete line.platforms.teams;
         }
 
         // handle additional custom fields defined in Botkit-CMS
@@ -141,7 +141,7 @@ export class BotkitCMSHelper {
             for (var a = 0; a < line.meta.length; a++) {
                 line.channelData[line.meta[a].key] = line.meta[a].value;
             }
-            delete (line.meta);
+            delete line.meta;
         }
 
         return line;
@@ -195,16 +195,16 @@ export class BotkitCMSHelper {
      *
      * ```javascript
      * controller.cms.onChange('my_script','my_variable', async(new_value, convo, bot) => {
-    *
-    * console.log('A new value got set for my_variable inside my_script: ', new_value);
-    *
-    * });
-    * ```
-    *
-    * @param script_name The name of the script to bind to
-    * @param variable_name The name of a variable within the script to bind to
-    * @param handler A handler function in the form async(value, convo, bot) => {}
-    */
+     *
+     * console.log('A new value got set for my_variable inside my_script: ', new_value);
+     *
+     * });
+     * ```
+     *
+     * @param script_name The name of the script to bind to
+     * @param variable_name The name of a variable within the script to bind to
+     * @param handler A handler function in the form async(value, convo, bot) => {}
+     */
     public onChange(script_name: string, variable_name: string, handler: (value: any, convo: BotkitDialogWrapper, bot: BotWorker) => Promise<void>): void {
         let dialog = this._controller.dialogSet.find(script_name) as BotkitConversation;
         if (dialog) {
@@ -215,20 +215,20 @@ export class BotkitCMSHelper {
     }
 
     /**
-    * Bind a handler function that will fire after a given dialog ends.
-    * Provides a way to use BotkitConversation.after() on dialogs loaded dynamically via the CMS api instead of being created in code.
-    *
-    * ```javascript
-    * controller.cms.after('my_script', async(results, bot) => {
-    *
-    * console.log('my_script just ended! here are the results', results);
-    *
-    * });
-    * ```
-    *
-    * @param script_name The name of the script to bind to
-    * @param handler A handler function in the form async(results, bot) => {}
-    */
+     * Bind a handler function that will fire after a given dialog ends.
+     * Provides a way to use BotkitConversation.after() on dialogs loaded dynamically via the CMS api instead of being created in code.
+     *
+     * ```javascript
+     * controller.cms.after('my_script', async(results, bot) => {
+     *
+     * console.log('my_script just ended! here are the results', results);
+     *
+     * });
+     * ```
+     *
+     * @param script_name The name of the script to bind to
+     * @param handler A handler function in the form async(results, bot) => {}
+     */
     public after(script_name: string, handler: (results: any, bot: BotWorker) => Promise<void>): void {
         let dialog = this._controller.dialogSet.find(script_name) as BotkitConversation;
         if (dialog) {
