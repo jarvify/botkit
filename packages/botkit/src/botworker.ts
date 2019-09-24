@@ -152,10 +152,13 @@ export class BotWorker {
      */
     public async beginDialog(id: string, options?: any): Promise<void> {
         if (this._config.dialogContext) {
+            this._config.dialogContext;
+
             await this._config.dialogContext.beginDialog(id + ':botkit-wrapper', {
                 user: this.getConfig('context').activity.from.id,
                 channel: this.getConfig('context').activity.conversation.id,
-                ...options
+                ...options,
+                botWorker: this
             });
 
             // make sure we save the state change caused by the dialog.
@@ -192,7 +195,8 @@ export class BotWorker {
             await this._config.dialogContext.replaceDialog(id + ':botkit-wrapper', {
                 user: this.getConfig('context').activity.from.id,
                 channel: this.getConfig('context').activity.conversation.id,
-                ...options
+                ...options,
+                botWorker: this
             });
 
             // make sure we save the state change caused by the dialog.

@@ -45,7 +45,7 @@ export interface BotkitConfiguration {
      * If using the BotFramework service, options included in `adapterConfig` will be passed to the new Adapter when created internally.
      * See [BotFrameworkAdapterSettings](https://docs.microsoft.com/en-us/javascript/api/botbuilder/botframeworkadaptersettings?view=azure-node-latest&viewFallbackFrom=botbuilder-ts-latest).
      */
-    adapterConfig?: {[key: string]: any}; // object with stuff in it
+    adapterConfig?: { [key: string]: any }; // object with stuff in it
 
     /**
      * An instance of Express used to define web endpoints.  If not specified, oen will be created internally.
@@ -248,8 +248,8 @@ export class Botkit {
         ingest: new Ware(),
         send: new Ware(),
         receive: new Ware(),
-        interpret: new Ware(),
-    }
+        interpret: new Ware()
+    };
 
     /**
      * A list of all the installed plugins.
@@ -392,7 +392,7 @@ export class Botkit {
 
                 this.http.listen(process.env.port || process.env.PORT || 3000, () => {
                     if (this._config.disable_console !== true) {
-                        console.log(`Webhook endpoint online:  http://localhost:${ process.env.PORT || 3000 }${ this._config.webhook_uri }`);
+                        console.log(`Webhook endpoint online:  http://localhost:${process.env.PORT || 3000}${this._config.webhook_uri}`);
                     }
                     this.completeDep('webserver');
                 });
@@ -407,7 +407,7 @@ export class Botkit {
             this.adapter = new BotkitBotFrameworkAdapter(adapterConfig);
             if (this.webserver) {
                 if (this._config.disable_console !== true) {
-                    console.log(`Open this bot in Bot Framework Emulator: bfemulator://livechat.open?botUrl=` + encodeURIComponent(`http://localhost:${ process.env.PORT || 3000 }${ this._config.webhook_uri }`));
+                    console.log(`Open this bot in Bot Framework Emulator: bfemulator://livechat.open?botUrl=` + encodeURIComponent(`http://localhost:${process.env.PORT || 3000}${this._config.webhook_uri}`));
                 }
             }
         } else {
@@ -484,7 +484,7 @@ export class Botkit {
      */
     public usePlugin(plugin_or_function: (botkit: Botkit) => BotkitPlugin | BotkitPlugin): void {
         let plugin: BotkitPlugin;
-        if (typeof (plugin_or_function) === 'function') {
+        if (typeof plugin_or_function === 'function') {
             plugin = plugin_or_function(this);
         } else {
             plugin = plugin_or_function;
@@ -565,7 +565,7 @@ export class Botkit {
      * After a plugin calls `controller.addPluginExtension('foo', extension_methods)`, the extension will then be available at
      * `controller.plugins.foo`
      */
-    public get plugins(): {[key: string]: any} {
+    public get plugins(): { [key: string]: any } {
         return this._plugins;
     }
 
@@ -617,7 +617,7 @@ export class Botkit {
      * @param name {string} The name of the dependency that is being loaded.
      */
     public addDep(name: string): void {
-        debug(`Waiting for ${ name }`);
+        debug(`Waiting for ${name}`);
         this._deps[name] = false;
     }
 
@@ -628,7 +628,7 @@ export class Botkit {
      * @param name {string} The name of the dependency that has completed loading.
      */
     public completeDep(name: string): boolean {
-        debug(`${ name } ready`);
+        debug(`${name} ready`);
 
         this._deps[name] = true;
 
@@ -718,7 +718,7 @@ export class Botkit {
             ...turnContext.activity.channelData, // start with all the fields that were in the original incoming payload. NOTE: this is a shallow copy, is that a problem?
 
             // if Botkit has further classified this message, use that sub-type rather than the Activity type
-            type: (turnContext.activity.channelData && turnContext.activity.channelData.botkitEventType) ? turnContext.activity.channelData.botkitEventType : turnContext.activity.type,
+            type: turnContext.activity.channelData && turnContext.activity.channelData.botkitEventType ? turnContext.activity.channelData.botkitEventType : turnContext.activity.type,
 
             // normalize the user, text and channel info
             user: turnContext.activity.from.id,
@@ -747,7 +747,6 @@ export class Botkit {
                         if (err) {
                             reject(err);
                         } else {
-
                             const interrupt_results = await this.listenForInterrupts(bot, message);
 
                             if (interrupt_results === false) {
@@ -773,8 +772,34 @@ export class Botkit {
      * Note: this is normally called internally and is only required when state changes happen outside of the normal processing flow.
      * @param bot {BotWorker} a BotWorker instance created using `controller.spawn()`
      */
-    public async saveState(bot: BotWorker): Promise<void> {
-        await this.conversationState.saveChanges(bot.getConfig('context'));
+    public async saveState(bot: BotWorker, force = false): Promise<void> {
+        try {
+            const activity = bot.getConfig('activity');
+            const config = bot.getConfig('config');
+            const context = bot.getConfig('context');
+
+            // @ts-ignore
+            if (force || config.dialogContext.stack.length === 0) {
+                await this.conversationState.saveChanges(context);
+                return;
+            }
+
+            const turnContextAfter = new TurnContext(this.adapter, activity);
+            const dialogContextAfter = await this.dialogSet.createContext(turnContextAfter);
+            let instanceIdAfter = null;
+
+            if (dialogContextAfter.stack.length > 0) {
+                instanceIdAfter = dialogContextAfter.stack[0].state.values.instanceId;
+            }
+
+            // @ts-ignore
+            let instanceIdBefore = config.dialogContext.stack[0].state.values.instanceId;
+            if (instanceIdBefore !== instanceIdAfter) {
+                await this.conversationState.saveChanges(context);
+            }
+        } catch {
+            // console.log(err)
+        }
     }
 
     /**
@@ -908,7 +933,7 @@ export class Botkit {
         }
 
         if (typeof events === 'string') {
-            events = events.split(/,/).map(e => e.trim());
+            events = events.split(/,/).map((e) => e.trim());
         }
 
         debug('Registering hears for ', events);
@@ -963,7 +988,7 @@ export class Botkit {
         }
 
         if (typeof events === 'string') {
-            events = events.split(/,/).map(e => e.trim());
+            events = events.split(/,/).map((e) => e.trim());
         }
         debug('Registering hears for ', events);
 
@@ -1011,7 +1036,7 @@ export class Botkit {
      */
     public on(events: string | string[], handler: BotkitHandler): void {
         if (typeof events === 'string') {
-            events = events.split(/,/).map(e => e.trim());
+            events = events.split(/,/).map((e) => e.trim());
         }
 
         debug('Registering handler for: ', events);
@@ -1126,9 +1151,13 @@ export class Botkit {
      */
     public loadModules(p: string): void {
         // load all the .js files from this path
-        fs.readdirSync(p).filter((f) => { return (path.extname(f) === '.js'); }).forEach((file) => {
-            this.loadModule(path.join(p, file));
-        });
+        fs.readdirSync(p)
+            .filter((f) => {
+                return path.extname(f) === '.js';
+            })
+            .forEach((file) => {
+                this.loadModule(path.join(p, file));
+            });
     }
 
     /**
@@ -1156,18 +1185,20 @@ export class Botkit {
 
         // add a wrapper dialog that will be called by bot.beginDialog
         // and is responsible for capturing the parent results
-        this.dialogSet.add(new WaterfallDialog(dialog.id + ':botkit-wrapper', [
-            async (step) => {
-                return step.beginDialog(dialog.id, step.options);
-            },
-            async (step) => {
-                let bot = await this.spawn(step.context);
+        this.dialogSet.add(
+            new WaterfallDialog(dialog.id + ':botkit-wrapper', [
+                async (step) => {
+                    return step.beginDialog(dialog.id, step.options);
+                },
+                async (step) => {
+                    let bot = await this.spawn(step.context);
 
-                await this.trigger(dialog.id + ':after', bot, step.result);
+                    await this.trigger(dialog.id + ':after', bot, step.result);
 
-                return step.endDialog(step.result);
-            }
-        ]));
+                    return step.endDialog(step.result);
+                }
+            ])
+        );
     }
 
     /**
@@ -1180,7 +1211,7 @@ export class Botkit {
      */
     public afterDialog(dialog: Dialog | string, handler: BotkitHandler): void {
         let id = '';
-        if (typeof (dialog) === 'string') {
+        if (typeof dialog === 'string') {
             id = dialog as string;
         } else {
             id = dialog.id;
