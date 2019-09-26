@@ -23,7 +23,7 @@ import {
   DialogTurnStatus,
 } from 'botbuilder-dialogs';
 import * as mustache from 'mustache';
-import { setPriority } from 'os';
+
 const debug = require('debug')('botkit:conversation');
 
 // @Jarvify fix
@@ -834,13 +834,6 @@ export class BotkitConversation<O extends object = {}> extends Dialog<O> {
           ...fcLine,
         };
       }
-
-      const isDialogActive = await this.isDialogActive(dc, activity)
-      if (!isDialogActive) {
-        // @TODO investigate
-        // await dc.endDialog()
-        return
-      }
   
       // If a prompt is defined in the script, use dc.prompt to call it.
       // This prompt must be a valid dialog defined somewhere in your code!
@@ -927,10 +920,13 @@ export class BotkitConversation<O extends object = {}> extends Dialog<O> {
     state.stepIndex = index;
     state.thread = thread_name;
 
+
     // @ts-ignore
     await this._controller.saveState(dc.botWorker, true)
+
+   
     // @ts-ignore
-    delete dc.botWorker
+    // delete dc.botWorker
     
     // Create step context
     const nextCalled = false;

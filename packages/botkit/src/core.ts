@@ -751,6 +751,8 @@ export class Botkit {
 
                             if (interrupt_results === false) {
                                 // Continue dialog if one is present
+                                // @ts-ignore
+                                dialogContext.botWorker = bot;
                                 const dialog_results = await dialogContext.continueDialog();
                                 if (dialog_results && dialog_results.status === DialogTurnStatus.empty) {
                                     await this.processTriggersAndEvents(bot, message);
@@ -774,18 +776,19 @@ export class Botkit {
      */
     public async saveState(bot: BotWorker, force = false): Promise<void> {
         try {
-            const activity = bot.getConfig('activity');
-            const config = bot.getConfig('config');
             const context = bot.getConfig('context');
 
-            // @ts-ignore
-            if (force || config.dialogContext.stack.length === 0) {
+            if (force) {
                 await this.conversationState.saveChanges(context);
                 return;
             }
 
+            const activity = bot.getConfig('activity');
+            const dialogContext = bot.getConfig('dialogContext');
+
             const turnContextAfter = new TurnContext(this.adapter, activity);
             const dialogContextAfter = await this.dialogSet.createContext(turnContextAfter);
+
             let instanceIdAfter = null;
 
             if (dialogContextAfter.stack.length > 0) {
@@ -793,12 +796,12 @@ export class Botkit {
             }
 
             // @ts-ignore
-            let instanceIdBefore = config.dialogContext.stack[0].state.values.instanceId;
+            let instanceIdBefore = dialogContext.stack[0].state.values.instanceId;
             if (instanceIdBefore !== instanceIdAfter) {
                 await this.conversationState.saveChanges(context);
             }
-        } catch {
-            // console.log(err)
+        } catch (e) {
+            console.log(e);
         }
     }
 
