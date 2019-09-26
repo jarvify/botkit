@@ -777,14 +777,14 @@ export class Botkit {
     public async saveState(bot: BotWorker, force = false): Promise<void> {
         try {
             const context = bot.getConfig('context');
+            const dialogContext = bot.getConfig('dialogContext');
 
-            if (force) {
+            if (force || dialogContext.stack.length === 0) {
                 await this.conversationState.saveChanges(context);
                 return;
             }
 
             const activity = bot.getConfig('activity');
-            const dialogContext = bot.getConfig('dialogContext');
 
             const turnContextAfter = new TurnContext(this.adapter, activity);
             const dialogContextAfter = await this.dialogSet.createContext(turnContextAfter);
@@ -795,7 +795,6 @@ export class Botkit {
                 instanceIdAfter = dialogContextAfter.stack[0].state.values.instanceId;
             }
 
-            // @ts-ignore
             let instanceIdBefore = dialogContext.stack[0].state.values.instanceId;
             if (instanceIdBefore !== instanceIdAfter) {
                 await this.conversationState.saveChanges(context);
