@@ -27,6 +27,23 @@ import * as mustache from 'mustache';
 const debug = require('debug')('botkit:conversation');
 
 // @Jarvify fix
+export async function isDialogActive(controller: Botkit, dc: DialogContext, activity: any): Promise<boolean> {
+  const turnContextAfter = new TurnContext(controller.adapter, activity);
+  const dialogContextAfter = await controller.dialogSet.createContext(turnContextAfter);
+
+  let instanceIdAfter = null;
+
+  if (dialogContextAfter.stack.length > 0) {
+    instanceIdAfter = dialogContextAfter.stack[0].state.values.instanceId
+  }
+
+  if (dc.stack.length === 0) {
+    return false
+  }
+
+  return dc.stack[0].state.values.instanceId === instanceIdAfter
+}
+
 type BotkitMessageTemplateAsync = (
   activity: Activity,
   values: any,
@@ -673,7 +690,13 @@ export class BotkitConversation<O extends object = {}> extends Dialog<O> {
       typingDelay = line.channelData.typingDelay;
     }
 
+    let dialogActive: boolean = false
     if (typingDelay) {
+       dialogActive = await isDialogActive(this._controller, dc, activity)
+      if (!dialogActive) {
+        return 
+      }
+
       await dc.context.sendActivity(await this.makeOutgoing(
         dc,
         {
@@ -685,38 +708,28 @@ export class BotkitConversation<O extends object = {}> extends Dialog<O> {
         },
         step.values,
       ))
+      
       await new Promise(resolve => {
         setTimeout(resolve, typingDelay);
       });
-      const isDialogActive = this.isDialogActive(dc, activity)
-      if (isDialogActive) {
-        await dc.context.sendActivity(await this.makeOutgoing(
-          dc,
-          {
-            type: 'typing',
-            channelData: {
-              status: 'OFF',
-            },
-          },
-          step.values,
-        ))
+
+      dialogActive = await isDialogActive(this._controller, dc, activity)
+      if (!dialogActive) {
+        return 
       }
+
+      await dc.context.sendActivity(await this.makeOutgoing(
+        dc,
+        {
+          type: 'typing',
+          channelData: {
+            status: 'OFF',
+          },
+        },
+        step.values,
+      ))
     }
   }
-
-  private async isDialogActive(dc: DialogContext, activity: any): Promise<boolean> {
-    const turnContextAfter = new TurnContext(this._controller.adapter, activity);
-    const dialogContextAfter = await this._controller.dialogSet.createContext(turnContextAfter);
-
-    let instanceIdAfter = null;
-
-    if (dialogContextAfter.stack.length > 0) {
-      instanceIdAfter = dialogContextAfter.stack[0].state.values.instanceId
-    }
-
-    return dc.stack[0].state.values.instanceId === instanceIdAfter
-  }
-
 
   /**
    * Called automatically to process the turn, interpret the script, and take any necessary actions based on that script. Do not call this directly!
@@ -725,6 +738,13 @@ export class BotkitConversation<O extends object = {}> extends Dialog<O> {
    * @param step The current step object
    */
   private async onStep(dc, step): Promise<any> {
+    // @TODO test this !
+    const activity = dc.context._activity
+    const dialogActive = await isDialogActive(this._controller, dc, activity)
+    if (!dialogActive) {
+      return
+    }
+
     // Let's interpret the current line of the script.
     const thread = this.script[step.thread];
 
@@ -822,10 +842,8 @@ export class BotkitConversation<O extends object = {}> extends Dialog<O> {
       // @Jarvify fix
       const activity = dc.context._activity
       const turnContext = new TurnContext(this._controller.adapter, activity);
-      const dialogContext = await this._controller.dialogSet.createContext(turnContext);
 
       if (typeof line === 'function') {
-        const activity = dc.context._activity;
         const values = step.values;
         const fcLine = await line(activity, values);
         
@@ -840,10 +858,8 @@ export class BotkitConversation<O extends object = {}> extends Dialog<O> {
       if (line.collect && line.action !== 'beginDialog') {
         await this.typingIndicator(dc, line, step, activity)
 
-        const isDialogActive = await this.isDialogActive(dc, activity)
-        if (!isDialogActive) {
-          // @TODO investigate
-          // await dc.endDialog()
+        const dialogActive = await isDialogActive(this._controller, dc, activity)
+        if (!dialogActive) {
           return
         }
 
@@ -871,10 +887,8 @@ export class BotkitConversation<O extends object = {}> extends Dialog<O> {
         ) {
           await this.typingIndicator(dc, line, step, activity)
 
-          const isDialogActive = await this.isDialogActive(dc, activity)
-          if (!isDialogActive) {
-            // @TODO investigate
-            // await dc.endDialog()
+          const dialogActive = await isDialogActive(this._controller, dc, activity)
+          if (!dialogActive) {
             return
           }
 
