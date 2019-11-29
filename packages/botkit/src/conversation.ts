@@ -664,7 +664,13 @@ export class BotkitConversation<O extends object = {}> extends Dialog<O> {
                     // TODO: Allow functions to be passed in as patterns
                     // ie async(test) => Promise<boolean>
 
-                    if (step.result && typeof step.result == 'string' && step.result.match(test)) {
+                    // CLW-77
+                    if (condition.type === "quick_reply"
+                        && activity.channelData.botkitEventType === "quick_reply"
+                        && activity.channelData.quick_reply.payload.match(condition.pattern)) {
+                        path = condition;
+                        break;
+                    } else if (step.result && typeof step.result == 'string' && step.result.match(test)) {
                         path = condition;
                         break;
                     }
